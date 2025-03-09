@@ -36,7 +36,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.43.1",
     "react-i18next": "^14.1.1",
-    "react-quill": "^2.0.0",
+    "react-quill": "^0.0.2",
     "swr": "^2.0.1",
     "ts-key-enum": "^2.0.12",
     "yup": "^1.0.0"
