@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -162,3 +163,6 @@ if (config('app.debug')) {
         }
     );
 }
+
+Route::get("/events", [EventController::class, "index"]);
+Route::post("/events", [EventController::class, "store"]);
