@@ -166,3 +166,4 @@ if (config('app.debug')) {
 
 Route::get("/events", [EventController::class, "index"]);
 Route::post("/events", [EventController::class, "store"]);
+Route::post('/events/{id}/participate', [EventController::class, 'participate']);
