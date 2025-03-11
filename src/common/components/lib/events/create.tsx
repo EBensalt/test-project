@@ -5,8 +5,13 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
+import api from "./api";
 
-export default function Create() {
+interface CreateProps {
+	onSuccess?: () => void;
+}
+
+export default function Create({ onSuccess }: CreateProps) {
 	const [open, setOpen] = useState(false);
   	const [data, setData] = useState({ title: "", date: dayjs(), location: "", max_participants: 1, description: ""});
   	const { user } = useAuth();
@@ -18,27 +23,23 @@ export default function Create() {
 		setOpen(false);
 	}
 	function changeText(event: React.ChangeEvent<HTMLInputElement>) {
-	setData({...data, [event.target.name]: event.target.value});
+		setData({...data, [event.target.name]: event.target.value});
 	}
 	function chageDate(event: Dayjs | null) {
-	setData({...data, date: event ?? dayjs()});
+		setData({...data, date: event ?? dayjs()});
 	}
 	async function addEvent() {
-	let mp = data.max_participants
-	if (typeof mp == "string")
-	  mp = 1;
-	try {
-	  const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/events`, { 
-		...data,
-		max_participants: 1,
-		user_id: user?.id
-	  });
+		const mp = Number(data.max_participants) || 1;
 
-	  closeDialog();
-	} catch (e) {
-	  if (axios.isAxiosError(e))
-		console.log(e.response?.data);
-	}
+		try {
+		  await api.post("/events", { ...data, max_participants: mp });
+
+		  closeDialog();
+		  onSuccess?.();
+		} catch (e) {
+		  if (axios.isAxiosError(e))
+			console.log(e.response?.data);
+		}
 	}
 
 	return <>
