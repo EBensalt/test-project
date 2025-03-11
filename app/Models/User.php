@@ -222,4 +222,8 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
 
         return $rules;
     }
+    public function participatingEvents()
+    {
+        return $this->belongsToMany(Event::class)->withTimestamps();
+    }
 }

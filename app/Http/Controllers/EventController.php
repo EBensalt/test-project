@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EventCreated;
+use App\Mail\ParticipationNotification;
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class EventController extends Controller
 {
@@ -15,7 +19,19 @@ class EventController extends Controller
     public function index()
     {
         try {
-            $events = Event::orderBy('created_at', 'desc')->get();
+            $userId = auth()->id();
+            $events = Event::with('user:id,email')
+                ->withCount('participants')
+                ->with(['participants' => function($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                }])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($event) {
+                    $event->is_participating = $event->participants->isNotEmpty();
+                    unset($event->participants);
+                    return $event;
+                });
             
             return response()->json([
                 'status' => true,
@@ -48,9 +64,7 @@ class EventController extends Controller
             'location.max' => 'The location cannot exceed 255 characters.',
             'max_participants.required' => 'The maximum participants field is required.',
             'max_participants.integer' => 'The maximum participants must be a number.',
-            'max_participants.min' => 'The maximum participants must be at least 1.',
-            "user_id.required" => "Authentication required: Please log in to create an event.",
-            "user_id.integer" => "Authentication error: Invalid user credentials.",
+            'max_participants.min' => 'The maximum participants must be at least 1.'
         ];
         $validator = Validator::make($request->all(), [
             "title" => "required|string|max:255",
@@ -63,8 +77,7 @@ class EventController extends Controller
                     $fail('The event date must be today or a future date.');
             }],
             "location" => "required|string|max:255",
-            "max_participants" => "required|integer|min:1",
-            "user_id" => "required|integer"
+            "max_participants" => "required|integer|min:1"
         ], $messages);
 
         if ($validator->fails()) {
@@ -75,7 +88,13 @@ class EventController extends Controller
             ], 422);
         }
         try {
-            $event = Event::create($validator->validated());
+            $data = array_merge(
+                $validator->validated(), 
+                ['user_id' => auth()->id()]
+            );
+
+            $event = Event::create($data);
+            broadcast(new EventCreated($event))->toOthers();
 
             return response()->json([
                 "status" => true,
@@ -113,5 +132,46 @@ class EventController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function participate(string $id)
+    {
+        try {
+            $event = Event::findOrFail($id);
+
+            if ($event->user_id == auth()->id()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You cannot participate in your own event'
+                ], 400);
+            }
+            if ($event->participants()->count() >= $event->max_participants) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Event is already full'
+                ], 400);
+            }
+            if ($event->participants()->where('user_id', auth()->id())->exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are already participating in this event'
+                ], 400);
+            }
+            $event->participants()->attach(auth()->id());
+            $organizer = User::find($event->user_id);
+
+            Mail::to($organizer)->send(new ParticipationNotification($event, auth()->user()));
+            return response()->json([
+                'status' => true,
+                'message' => 'Successfully joined the event',
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to join event',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

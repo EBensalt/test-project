@@ -21,4 +21,13 @@ class Event extends Model
     protected $casts = [
         'date' => 'datetime',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function participants()
+    {
+        return $this->belongsToMany(User::class)->withTimestamps();
+    }
 }
