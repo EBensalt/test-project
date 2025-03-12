@@ -19,6 +19,13 @@ if (typeof window !== 'undefined') {
         wssPort: process.env.NEXT_PUBLIC_REVERB_PORT,
         forceTLS: (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'https') === 'https',
         enabledTransports: ['ws', 'wss'],
+        authEndpoint: `${process.env.NEXT_PUBLIC_API_URL}/broadcasting/auth`,
+        auth: {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+                Accept: 'application/json',
+            },
+        },
     });
 }
 

@@ -4,9 +4,9 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import api from "./api";
-import { getEcho } from "src/utils/echo";
+import { useSnackbar } from "notistack";
 
 interface CreateProps {
 	onSuccess?: () => void;
@@ -15,6 +15,7 @@ interface CreateProps {
 export default function Create({ onSuccess }: CreateProps) {
 	const	[open, setOpen] = useState(false);
   	const	[data, setData] = useState({ title: "", date: dayjs(), location: "", max_participants: 1, description: ""});
+	const { enqueueSnackbar } = useSnackbar();
 
 	function openDialog() {
 		setOpen(true);
@@ -35,12 +36,32 @@ export default function Create({ onSuccess }: CreateProps) {
 		  await api.post("/events", { ...data, max_participants: mp });
 
 		  closeDialog();
+		  setData({ title: "", date: dayjs(), location: "", max_participants: 1, description: ""});
 		  onSuccess?.();
 		} catch (e) {
-		  if (axios.isAxiosError(e))
-			console.log(e.response?.data);
+			if (axios.isAxiosError(e)) {
+				Object.entries(e.response?.data.error).forEach(([field, messages]) => {
+					if (Array.isArray(messages)) {
+					  messages.forEach(message => {
+						enqueueSnackbar(`${field}: ${message}`, { variant: 'error' });
+					  });
+					} else {
+					  enqueueSnackbar(`${field}: ${messages}`, { variant: 'error' });
+					}
+				  });
+			}
 		}
 	}
+	function handleKeyPress(event: React.KeyboardEvent) {
+		if (event.key == 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+		  	addEvent();
+		}
+		if (event.key == 'Escape' && !event.shiftKey) {
+			event.preventDefault();
+			closeDialog();
+		}
+	  };
 
 	return <>
 			<Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -50,46 +71,49 @@ export default function Create({ onSuccess }: CreateProps) {
     		</Box>
 			<LocalizationProvider dateAdapter={AdapterDayjs}>
 			<Dialog open={open} maxWidth="xs" fullWidth>
-				<Card sx={{ padding: "10px", display: 'flex', flexDirection: "column", gap: "10px", width: "100%" }} >
-				<TextField
-					id="outlined-basic"
-					label="Title"
-					name='title'
-					variant="outlined"
-					value={data.title}
-					onChange={changeText}
-				/>
-				<DatePicker label="Date" value={data.date} onChange={chageDate} />
-				<TextField
-					name='location'
-					id="outlined-basic"
-					label="Location"
-					variant="outlined"
-					value={data.location}
-					onChange={changeText}
-				/>
-				<TextField
-					name='max_participants'
-					id="outlined-basic"
-					label="Maximum number of participants"
-					variant="outlined"
-					type="number"
-					value={data.max_participants}
-					onChange={changeText}
-				/>
-				<TextField
-					name='description'
-					id="outlined-basic"
-					label="Description"
-					variant="outlined"
-					multiline
-					value={data.description}
-					onChange={changeText}
-				/>
-				<Box sx={{ display: 'flex', justifyContent: "center", gap: "10px" }}>
-					<Button variant="outlined" onClick={addEvent}>Save</Button>
-					<Button variant="outlined" color='error' onClick={closeDialog}>Cancel</Button>
-				</Box>
+				<Card sx={{ padding: "10px", display: 'flex', flexDirection: "column", gap: "10px", width: "100%" }}
+					onKeyDown={handleKeyPress}
+					component={"form"}
+				>
+					<TextField
+						id="outlined-basic"
+						label="Title"
+						name='title'
+						variant="outlined"
+						value={data.title}
+						onChange={changeText}
+					/>
+					<DatePicker label="Date" value={data.date} onChange={chageDate} />
+					<TextField
+						name='location'
+						id="outlined-basic"
+						label="Location"
+						variant="outlined"
+						value={data.location}
+						onChange={changeText}
+					/>
+					<TextField
+						name='max_participants'
+						id="outlined-basic"
+						label="Maximum number of participants"
+						variant="outlined"
+						type="number"
+						value={data.max_participants}
+						onChange={changeText}
+					/>
+					<TextField
+						name='description'
+						id="outlined-basic"
+						label="Description"
+						variant="outlined"
+						multiline
+						value={data.description}
+						onChange={changeText}
+					/>
+					<Box sx={{ display: 'flex', justifyContent: "center", gap: "10px" }}>
+						<Button variant="outlined" onClick={addEvent}>Save</Button>
+						<Button variant="outlined" color='error' onClick={closeDialog}>Cancel</Button>
+					</Box>
 				</Card>
 			</Dialog>
 			</LocalizationProvider>
