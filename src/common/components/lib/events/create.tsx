@@ -4,17 +4,17 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "./api";
+import { getEcho } from "src/utils/echo";
 
 interface CreateProps {
 	onSuccess?: () => void;
 }
 
 export default function Create({ onSuccess }: CreateProps) {
-	const [open, setOpen] = useState(false);
-  	const [data, setData] = useState({ title: "", date: dayjs(), location: "", max_participants: 1, description: ""});
-  	const { user } = useAuth();
+	const	[open, setOpen] = useState(false);
+  	const	[data, setData] = useState({ title: "", date: dayjs(), location: "", max_participants: 1, description: ""});
 
 	function openDialog() {
 		setOpen(true);

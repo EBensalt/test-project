@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import api from '@common/components/lib/events/api';
 import useAuth from '@modules/auth/hooks/api/useAuth';
+import { laravelEcho } from 'src/lib/echo';
 
 interface ErrorResponse {
   status: boolean;
@@ -39,6 +40,14 @@ const Index: NextPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
+  useEffect(() => {
+    laravelEcho.channel("event-created").listen("EventCreated", (event: any) => {
+      console.log(event.title);
+    })
+    return () => {
+      laravelEcho.leave("event-created");
+    }
+  }, [])
 
   async function fetchData() {
     try {
