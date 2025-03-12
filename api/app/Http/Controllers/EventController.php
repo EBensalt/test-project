@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Events\EventCreated;
+use App\Events\EventDeleted;
 use App\Events\EventParticipation;
+use App\Events\EventParticipationCancelled;
 use App\Mail\ParticipationNotification;
 use App\Models\Event;
 use App\Models\User;
@@ -11,6 +13,7 @@ use Illuminate\Http\Request;
 use Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
@@ -132,7 +135,29 @@ class EventController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $event = Event::findOrFail($id);
+
+            if ($event->user_id !== auth()->id()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You can only cancel your own events'
+                ], 403);
+            }
+            $event->delete();
+            EventDeleted::dispatch($event);
+            return response()->json([
+                'status' => true,
+                'message' => 'Event cancelled successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to cancel event',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function participate(string $id)
@@ -161,8 +186,8 @@ class EventController extends Controller
             $event->participants()->attach(auth()->id());
             EventParticipation::dispatch($event, auth()->user());
             $organizer = User::find($event->user_id);
-
             Mail::to($organizer)->send(new ParticipationNotification($event, auth()->user()));
+
             return response()->json([
                 'status' => true,
                 'message' => 'Successfully joined the event',
@@ -172,6 +197,33 @@ class EventController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Failed to join event',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function cancelParticipation(string $id)
+    {
+        try {
+            $event = Event::findOrFail($id);
+
+            if (!$event->participants()->where('user_id', auth()->id())->exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not participating in this event'
+                ], 400);
+            }
+            $event->participants()->detach(auth()->id());
+            EventParticipationCancelled::dispatch($event, auth()->user());
+            return response()->json([
+                'status' => true,
+                'message' => 'Successfully cancelled participation'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to cancel participation',
                 'error' => $e->getMessage()
             ], 500);
         }
