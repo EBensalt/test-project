@@ -11,10 +11,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class EventCreated
+class EventCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    
+
     public $event;
 
     /**
@@ -33,20 +33,7 @@ class EventCreated
     public function broadcastOn(): array
     {
         return [
-            new Channel('events')
-        ];
-    }
-
-    public function broadcastWith(): array
-    {
-        return [
-            'id' => $this->event->id,
-            'title' => $this->event->title,
-            'creator' => $this->event->user->email,
-            'date' => $this->event->date,
-            'location' => $this->event->location,
-            'max_participants' => $this->event->max_participants,
-            'description' => $this->event->description
+            new Channel("event-created")
         ];
     }
 }
