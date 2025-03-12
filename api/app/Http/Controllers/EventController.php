@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\EventCreated;
+use App\Events\EventParticipation;
 use App\Mail\ParticipationNotification;
 use App\Models\Event;
 use App\Models\User;
@@ -158,6 +159,7 @@ class EventController extends Controller
                 ], 400);
             }
             $event->participants()->attach(auth()->id());
+            EventParticipation::dispatch($event, auth()->user());
             $organizer = User::find($event->user_id);
 
             Mail::to($organizer)->send(new ParticipationNotification($event, auth()->user()));
