@@ -8,7 +8,6 @@ import { Container, useTheme, Button, Typography } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslation } from 'react-i18next';
-import EventNotification from '@common/components/lib/events/event_notification';
 import { ToastContainer } from 'react-toastify';
 
 interface ILayoutProps {
@@ -79,8 +78,6 @@ const Layout = (props: ILayoutProps) => {
 
   return (
     <div>
-      <EventNotification />
-      <ToastContainer />
       <Head>
         <title>{process.env.NEXT_PUBLIC_APP_TITLE}</title>
         <meta name="viewport" content="initial-scale=1, width=device-width" />

@@ -94,7 +94,7 @@ class EventController extends Controller
             );
 
             $event = Event::create($data);
-            broadcast(new EventCreated($event))->toOthers();
+            EventCreated::dispatch($event);
 
             return response()->json([
                 "status" => true,

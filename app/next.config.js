@@ -3,7 +3,7 @@ const { i18n } = require('./next-i18next.config');
 
 const nextConfig = {
   // output: 'export',
-  reactStrictMode: true,
+  reactStrictMode: false,
   images: {
     domains: ['localhost'],
     remotePatterns: [
