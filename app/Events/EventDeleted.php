@@ -5,11 +5,13 @@ namespace App\Events;
 use App\Models\Event;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class EventCreated implements ShouldBroadcastNow
+class EventDeleted implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -31,7 +33,7 @@ class EventCreated implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel("event-created")
+            new Channel('event-deleted'),
         ];
     }
 }

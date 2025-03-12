@@ -4,20 +4,19 @@ namespace App\Events;
 
 use App\Models\Event;
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class EventParticipation
+class EventParticipation implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $event;
     public $participant;
+    public $participants_count;
 
     /**
      * Create a new event instance.
@@ -26,6 +25,7 @@ class EventParticipation
     {
         $this->event = $event;
         $this->participant = $participant;
+        $this->participants_count = $event->participants()->count();
     }
 
     /**
@@ -33,21 +33,8 @@ class EventParticipation
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new Channel("event-participation.{$this->event->user_id}")
-        ];
-    }
-
-    public function broadcastWith(): array
-    {
-        return [
-            'event' => $this->event,
-            'participant' => [
-                'email' => $this->participant->email
-            ],
-            'message' => "{$this->participant->email} has joined your event: {$this->event->title}"
-        ];
+        return new PrivateChannel('event_participation.' . $this->event->user_id);
     }
 }

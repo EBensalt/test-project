@@ -19,7 +19,12 @@ use Illuminate\Support\Facades\Broadcast;
 //     }
 // );
 Broadcast::channel(
-    'App.Models.User.{id}', function ($user, $id) {
+    'event_participation.{id}', function ($user, $id) {
+        return (int) $user->id === (int) $id;
+    }
+);
+Broadcast::channel(
+    'event_participation_cancelled.{id}', function ($user, $id) {
         return (int) $user->id === (int) $id;
     }
 );

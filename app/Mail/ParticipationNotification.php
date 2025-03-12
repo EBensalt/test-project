@@ -27,19 +27,13 @@ class ParticipationNotification extends Mailable
         $this->participant = $participant;
     }
 
-    public function build()
-    {
-        return $this->markdown('emails.participation-notification')
-                    ->subject("New Participant in {$this->event->title}");
-    }
-
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Participation Notification',
+            subject: "New Participant in {$this->event->title}",
         );
     }
 
@@ -49,7 +43,7 @@ class ParticipationNotification extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            markdown: 'emails.participation-notification',
         );
     }
 
