@@ -13,12 +13,19 @@ import dayjs from 'dayjs';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import api from '@common/components/lib/events/api';
 import useAuth from '@modules/auth/hooks/api/useAuth';
-import { laravelEcho } from 'src/lib/echo';
+import laravelEcho from 'src/lib/echo';
+import { useSnackbar } from 'notistack';
 
-interface ErrorResponse {
-  status: boolean;
-  message: string;
-  error: string | Record<string, string[]>;
+interface EventCreatedData {
+  event: {
+    id: number;
+    title: string;
+    date: string;
+    location: string;
+    description: string;
+    maxParticipants: number;
+    userId: number;
+  };
 }
 
 const Index: NextPage = () => {
@@ -36,18 +43,59 @@ const Index: NextPage = () => {
     isParticipating: boolean
   }[]>([]);
   const { user } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     fetchData();
   }, []);
   useEffect(() => {
-    laravelEcho.channel("event-created").listen("EventCreated", (event: any) => {
-      console.log(event.title);
-    })
+    if (laravelEcho)
+      laravelEcho.channel("event-created").listen("EventCreated", (data: EventCreatedData) => {
+        const { event } = data;
+        const formattedDate = dayjs(event.date).format('MMM D, YYYY [at] h:mm A');
+        
+        enqueueSnackbar(
+          <Typography>
+            <strong>{event.title}</strong>
+            <br />
+            📅 {formattedDate}
+            <br />
+            📍 {event.location}
+          </Typography>, 
+          {
+            variant: 'success',
+            autoHideDuration: 5000,
+            anchorOrigin: {
+              vertical: 'top',
+              horizontal: 'right'
+            }
+          }
+        );
+        fetchData();
+      })
     return () => {
-      laravelEcho.leave("event-created");
+      if (laravelEcho)
+        laravelEcho.leave("event-created");
     }
-  }, [])
+  }, []);
+  useEffect(() => {
+    if (laravelEcho && user?.id)
+      laravelEcho.channel(`event-participation.${user?.id}`)
+        .listen('EventParticipation', (data: any) => {
+            console.log(data);
+            enqueueSnackbar(data.message, {
+                variant: 'info',
+                anchorOrigin: {
+                    vertical: 'top',
+                    horizontal: 'right'
+                }
+            });
+        });
+    return () => {
+      if (laravelEcho)
+        laravelEcho.leave("event-created");
+    }
+  }, [user?.id]);
 
   async function fetchData() {
     try {
@@ -64,7 +112,7 @@ const Index: NextPage = () => {
     try {
       const response = await api.post(`/events/${eventId}/participate`);
 
-      console.log(response.data.data);
+      // console.log(response.data.data);
       if (response.data.status)
         await fetchData();
     } catch (e) {
