@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
-installCommand = "git init && composer install --ignore-platform-reqs"
 buildCommand = "composer install --no-dev"
 
 [deploy]
