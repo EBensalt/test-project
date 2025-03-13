@@ -1,0 +1,17 @@
+[build]
+builder = "nixpacks"
+buildCommand = "git init && composer install --no-dev"
+
+[deploy]
+startCommand = "php artisan serve --host=0.0.0.0 --port=$PORT"
+restartPolicyType = "ON_FAILURE"
+healthcheckPath = "/api/hello"
+healthcheckTimeout = 100
+
+[[services]]
+name = "websocket"
+startCommand = "php artisan reverb:start"
+
+[[services]]
+name = "queue"
+startCommand = "php artisan queue:work"
