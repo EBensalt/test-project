@@ -8,7 +8,6 @@ import { Container, useTheme, Button, Typography } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslation } from 'react-i18next';
-import { ToastContainer } from 'react-toastify';
 
 interface ILayoutProps {
   children: React.ReactNode;
