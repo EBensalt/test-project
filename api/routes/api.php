@@ -170,3 +170,9 @@ Route::post('/events/{id}/participate', [EventController::class, 'participate'])
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 Route::post('/events/{id}/cancel', [EventController::class, 'destroy']);
 Route::delete('/events/{id}/participate', [EventController::class, 'cancelParticipation']);
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toISOString()
+    ]);
+});
