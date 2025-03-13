@@ -16,6 +16,10 @@ const ResetPasswordPage: NextPage = () => {
   );
 };
 
+export const getStaticPaths = () => {
+  return { paths: [], fallback: 'blocking' };
+};
+
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {
     ...(await serverSideTranslations(locale, ['topbar', 'footer', 'leftbar', 'auth', 'common'])),
