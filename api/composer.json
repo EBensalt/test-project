@@ -43,9 +43,12 @@
         }
     },
     "scripts": {
+        "install-dusk-chrome": "php artisan dusk:chrome-driver --detect",
         "run-dusk-windows": "./vendor/laravel/dusk/bin/chromedriver-win.exe --port=9515",
         "run-dusk-linux": "./vendor/laravel/dusk/bin/chromedriver-linux --port=9515",
-        "post-install-cmd": [],
+        "post-install-cmd": [
+            "@install-dusk-chrome"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
