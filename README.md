@@ -10,36 +10,13 @@ Before you begin, ensure you have the following installed on your system:
 - Node.js >= 14.x
 - npm (Node package manager)
 
-## Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/EBensalt/test-project.git
-cd test-project
-```
-
-2. Install PHP dependencies
-```bash
-cd api
-composer install
-php artisan migrate --seed
-cd ..
-```
-
-3. Install TypeScript/JavaScript dependencies
-```bash
-cd app
-git init
-npm install
-cd ..
-```
-
 ## Configuration
 
 1. Create a copy of the environment file for the api
 ```bash
 cd api
 cp .env.example .env
+cd ..
 ```
 
 2. Configure your environment variables in `.env`
@@ -51,11 +28,30 @@ DB_PASSWORD=your_password
 
 3. Create a copy of the environment file for the app
 ```bash
-cd ../app
+cd app
 cp .env.example .env
+cd ..
 ```
 
 4. Configure your environment variables in `.env`
+
+## Installation
+
+1. Install PHP dependencies
+```bash
+cd api
+composer install
+php artisan migrate --seed
+cd ..
+```
+
+2. Install TypeScript/JavaScript dependencies
+```bash
+cd app
+git init
+npm install
+cd ..
+```
 
 ## Running the Application
 
@@ -74,7 +70,7 @@ php artisan reverb:start
 3. Start the PHP queue listing in a new terminal
 ```bash
 cd api
-php artisan queue:listen
+php artisan queue:work
 ```
 
 4. Start the Next development server in a new terminal
